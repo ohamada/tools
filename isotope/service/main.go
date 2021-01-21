@@ -24,9 +24,10 @@ import (
 
 	"istio.io/pkg/log"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"istio.io/tools/isotope/convert/pkg/consts"
 	"istio.io/tools/isotope/service/pkg/srv"
-	"istio.io/tools/isotope/service/pkg/srv/prometheus"
 )
 
 const (
@@ -68,15 +69,17 @@ func main() {
 }
 
 func serveWithPrometheus(defaultHandler http.Handler) error {
+	h2s := &http2.Server{}
 	log.Infof(`exposing Prometheus endpoint "%s"`, promEndpoint)
-	http.Handle(promEndpoint, prometheus.Handler())
-
-	log.Infof(`exposing default endpoint "%s"`, defaultEndpoint)
-	http.Handle(defaultEndpoint, defaultHandler)
+	// http.Handle(promEndpoint, prometheus.Handler())
 
 	addr := fmt.Sprintf(":%d", consts.ServicePort)
 	log.Infof("listening on port %v\n", consts.ServicePort)
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	server := &http.Server{
+		Addr:    addr,
+		Handler: h2c.NewHandler(defaultHandler, h2s),
+	}
+	if err := server.ListenAndServe(); err != nil {
 		return err
 	}
 	return nil

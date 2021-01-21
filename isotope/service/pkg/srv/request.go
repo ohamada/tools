@@ -16,9 +16,12 @@ package srv
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 
+	"golang.org/x/net/http2"
 	"istio.io/pkg/log"
 
 	"istio.io/tools/isotope/convert/pkg/consts"
@@ -35,7 +38,15 @@ func sendRequest(
 		return nil, err
 	}
 	log.Debugf("sending request to %s (%s)", destName, url)
-	return http.DefaultClient.Do(request)
+	client := http.Client{
+		Transport: &http2.Transport{
+			AllowHTTP: true,
+			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
+				return net.Dial(network, addr)
+			},
+		},
+	}
+	return client.Do(request)
 }
 
 func buildRequest(

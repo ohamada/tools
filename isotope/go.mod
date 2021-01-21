@@ -9,6 +9,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.0
 	github.com/prometheus/client_golang v1.5.1
 	github.com/spf13/cobra v0.0.7
+	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
 	istio.io/pkg v0.0.0-20200327214633-ce134a9bd104
 	k8s.io/api v0.18.0
 	k8s.io/apimachinery v0.18.0
